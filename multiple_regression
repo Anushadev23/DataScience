@@ -1,0 +1,21 @@
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn import linear_model
+from sklearn.datasets import load_iris
+x, y = load_iris(return_X_y=True)
+x = x[:, 0:2]
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=0)
+classifier = linear_model.LinearRegression()
+classifier.fit(x_train, y_train)
+y_pred = classifier.predict(x_test)
+r2 = r2_score(y_test, y_pred)
+print(f"R-squared Score: {r2*100:.2f}")
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse*100:.2f}")
+plt.scatter(x_test[:, 0], y_test, color='black')
+plt.plot(x_test[:, 0], y_pred, color='red')
+plt.title('Linear Regression')
+plt.xlabel('Feature 1')
+plt.ylabel('Target')
+plt.show()
