@@ -1,49 +1,53 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error, r2_score
+from mpl_toolkits.mplot3d import Axes3D
 
-# Load the Boston Housing dataset
-# You can also use `from sklearn.datasets import load_boston` to load the dataset directly.
-data = pd.read_csv('https://raw.githubusercontent.com/selva86/datasets/master/BostonHousing.csv')
 
-# Print the first few rows of the dataset
-print(data.head())
+d_X, d_y = datasets.load_diabetes(return_X_y=True)
+d_X = d_X[:, [0, 2]]  
 
-# Define features (X) and target variable (y)
-X = data.drop('medv', axis=1)  # Features (remove the target variable)
-y = data['medv']                # Target variable (median value of homes)
 
-# Split the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+d_X_train = d_X[:-20]
+d_X_test = d_X[-20:]
 
-# Create a linear regression model
-model = LinearRegression()
+d_y_train = d_y[:-20]
+d_y_test = d_y[-20:]
 
-# Fit the model
-model.fit(X_train, y_train)
 
-# Make predictions
-y_pred = model.predict(X_test)
+model = linear_model.LinearRegression()
+model.fit(d_X_train, d_y_train)
 
-# Evaluate the model
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
 
-print(f"Mean Squared Error: {mse:.2f}")
-print(f"R-squared Score: {r2:.2f}")
+d_y_pred = model.predict(d_X_test)
 
-# Visualize actual vs predicted values
-plt.figure(figsize=(10, 6))
-sns.scatterplot(x=y_test, y=y_pred)
-plt.xlabel('Actual Prices')
-plt.ylabel('Predicted Prices')
-plt.title('Actual vs Predicted Prices')
-plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--')  # 45-degree line
+print("Coefficients:", model.coef_)
+print("Intercept:", model.intercept_)
+print("Mean Squared Error:" % mean_squared_error(d_y_test, d_y_pred))
+print("R² Score: %.2f" % r2_score(d_y_test, d_y_pred))
+
+
+x_age = d_X_test[:, 0]  
+y_bmi = d_X_test[:, 1]  
+
+plt.style.use('default')
+fig = plt.figure(figsize=(12, 4))
+ax1 = fig.add_subplot(131, projection='3d')
+ax2 = fig.add_subplot(132, projection='3d')
+ax3 = fig.add_subplot(133, projection='3d')
+axes = [ax1, ax2, ax3]
+for ax in axes:
+    ax.scatter(x_age, y_bmi, d_y_test, color='blue', label='Actual', alpha=0.6)
+    ax.plot(x_age, y_bmi, d_y_pred, color='red', marker='o', linestyle='none', label='Predicted', alpha=0.6)
+    ax.set_xlabel('Age')
+    ax.set_ylabel('BMI')
+    ax.set_zlabel('Disease Progression')
+    ax.legend()
+    ax.grid(True)
+ax1.view_init(elev=28, azim=120)
+ax2.view_init(elev=10, azim=70)
+ax3.view_init(elev=60, azim=160)
+fig.suptitle(f'3D Regression Plot (R² Score: {r2_score(diabetes_y_test, diabetes_y_pred):.2f})', fontsize=16)
+fig.tight_layout()
 plt.show()
-
-# Print the coefficients
-coefficients = pd.DataFrame(model.coef_, X.columns, columns=['Coefficient'])
-print(coefficients)
