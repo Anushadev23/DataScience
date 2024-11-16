@@ -36,18 +36,23 @@ fig = plt.figure(figsize=(12, 4))
 ax1 = fig.add_subplot(131, projection='3d')
 ax2 = fig.add_subplot(132, projection='3d')
 ax3 = fig.add_subplot(133, projection='3d')
+
 axes = [ax1, ax2, ax3]
+
 for ax in axes:
-    ax.scatter(x_age, y_bmi, d_y_test, color='blue', label='Actual', alpha=0.6)
-    ax.plot(x_age, y_bmi, d_y_pred, color='red', marker='o', linestyle='none', label='Predicted', alpha=0.6)
+    ax.scatter(x_age, y_bmi, diabetes_y_test, color='blue', label='Actual', alpha=0.6)
+    ax.plot(x_age, y_bmi, diabetes_y_pred, color='red', marker='o', linestyle='none', label='Predicted', alpha=0.6)
     ax.set_xlabel('Age')
     ax.set_ylabel('BMI')
     ax.set_zlabel('Disease Progression')
     ax.legend()
     ax.grid(True)
+    
 ax1.view_init(elev=28, azim=120)
 ax2.view_init(elev=10, azim=70)
 ax3.view_init(elev=60, azim=160)
+
+
 fig.suptitle(f'3D Regression Plot (R² Score: {r2_score(diabetes_y_test, diabetes_y_pred):.2f})', fontsize=16)
 fig.tight_layout()
 plt.show()
