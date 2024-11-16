@@ -4,35 +4,34 @@ from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 from mpl_toolkits.mplot3d import Axes3D
 
+# Load the diabetes dataset
+diabetes_X, diabetes_y = datasets.load_diabetes(return_X_y=True)
 
-d_X, d_y = datasets.load_diabetes(return_X_y=True)
-d_X = d_X[:, [0, 2]]  
+# Use only Age (column 0) and BMI (column 2) as features
+diabetes_X = diabetes_X[:, [0, 2]] 
 
+# Split the data into training/testing sets
+diabetes_X_train = diabetes_X[:-20]
+diabetes_X_test = diabetes_X[-20:]
+diabetes_y_train = diabetes_y[:-20]
+diabetes_y_test = diabetes_y[-20:]
 
-d_X_train = d_X[:-20]
-d_X_test = d_X[-20:]
-
-d_y_train = d_y[:-20]
-d_y_test = d_y[-20:]
-
-
+# Create and train the linear regression model
 model = linear_model.LinearRegression()
-model.fit(d_X_train, d_y_train)
+model.fit(diabetes_X_train, diabetes_y_train)
 
+# Make predictions using the testing set
+diabetes_y_pred = model.predict(diabetes_X_test)
 
-d_y_pred = model.predict(d_X_test)
+# Extract Age and BMI for the 3D plot
+x_age = diabetes_X_test[:, 0]  # Age
+y_bmi = diabetes_X_test[:, 1]  # BMI
 
-print("Coefficients:", model.coef_)
-print("Intercept:", model.intercept_)
-print("Mean Squared Error:" % mean_squared_error(d_y_test, d_y_pred))
-print("R² Score: %.2f" % r2_score(d_y_test, d_y_pred))
-
-
-x_age = d_X_test[:, 0]  
-y_bmi = d_X_test[:, 1]  
-
+# Plotting
 plt.style.use('default')
 fig = plt.figure(figsize=(12, 4))
+
+# Create 3 subplots for different 3D views
 ax1 = fig.add_subplot(131, projection='3d')
 ax2 = fig.add_subplot(132, projection='3d')
 ax3 = fig.add_subplot(133, projection='3d')
@@ -40,19 +39,24 @@ ax3 = fig.add_subplot(133, projection='3d')
 axes = [ax1, ax2, ax3]
 
 for ax in axes:
+    # Scatter plot of actual values
     ax.scatter(x_age, y_bmi, diabetes_y_test, color='blue', label='Actual', alpha=0.6)
+    # Predicted values as points
     ax.plot(x_age, y_bmi, diabetes_y_pred, color='red', marker='o', linestyle='none', label='Predicted', alpha=0.6)
     ax.set_xlabel('Age')
     ax.set_ylabel('BMI')
     ax.set_zlabel('Disease Progression')
     ax.legend()
     ax.grid(True)
-    
+
+# Adjust views for each subplot
 ax1.view_init(elev=28, azim=120)
 ax2.view_init(elev=10, azim=70)
 ax3.view_init(elev=60, azim=160)
 
-
+# Add a title with the R² score
 fig.suptitle(f'3D Regression Plot (R² Score: {r2_score(diabetes_y_test, diabetes_y_pred):.2f})', fontsize=16)
+
+# Adjust layout and display plot
 fig.tight_layout()
 plt.show()
