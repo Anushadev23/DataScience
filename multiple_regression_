@@ -1,62 +1,52 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn import datasets, linear_model
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
-from mpl_toolkits.mplot3d import Axes3D
 
 # Load the diabetes dataset
-diabetes_X, diabetes_y = datasets.load_diabetes(return_X_y=True)
+diabetes = datasets.load_diabetes()
 
-# Use only Age (column 0) and BMI (column 2) as features
-diabetes_X = diabetes_X[:, [0, 2]] 
+# Create a DataFrame for easier analysis
+diabetes_df = pd.DataFrame(data=diabetes.data, columns=diabetes.feature_names)
+diabetes_df['target'] = diabetes.target
 
-# Split the data into training/testing sets
-diabetes_X_train = diabetes_X[:-20]
-diabetes_X_test = diabetes_X[-20:]
-diabetes_y_train = diabetes_y[:-20]
-diabetes_y_test = diabetes_y[-20:]
+# Display the first few rows of the dataset
+print("Dataset Sample:")
+print(diabetes_df.head())
 
-# Create and train the linear regression model
-model = linear_model.LinearRegression()
-model.fit(diabetes_X_train, diabetes_y_train)
+# Features (all columns except the target)
+X = diabetes_df.drop(columns='target')
 
-# Make predictions using the testing set
-diabetes_y_pred = model.predict(diabetes_X_test)
+# Target (the progression of diabetes)
+y = diabetes_df['target']
 
-# Extract Age and BMI for the 3D plot
-x_age = diabetes_X_test[:, 0]  # Age
-y_bmi = diabetes_X_test[:, 1]  # BMI
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Plotting
-plt.style.use('default')
-fig = plt.figure(figsize=(12, 4))
+# Create a Linear Regression model
+model = LinearRegression()
 
-# Create 3 subplots for different 3D views
-ax1 = fig.add_subplot(131, projection='3d')
-ax2 = fig.add_subplot(132, projection='3d')
-ax3 = fig.add_subplot(133, projection='3d')
+# Train the model
+model.fit(X_train, y_train)
 
-axes = [ax1, ax2, ax3]
+# Make predictions on the test set
+y_pred = model.predict(X_test)
 
-for ax in axes:
-    # Scatter plot of actual values
-    ax.scatter(x_age, y_bmi, diabetes_y_test, color='blue', label='Actual', alpha=0.6)
-    # Predicted values as points
-    ax.plot(x_age, y_bmi, diabetes_y_pred, color='red', marker='o', linestyle='none', label='Predicted', alpha=0.6)
-    ax.set_xlabel('Age')
-    ax.set_ylabel('BMI')
-    ax.set_zlabel('Disease Progression')
-    ax.legend()
-    ax.grid(True)
+# Print the coefficients, intercept, and evaluation metrics
+print("\nModel Coefficients:", model.coef_)
+print("Model Intercept:", model.intercept_)
+print("Mean Squared Error:", mean_squared_error(y_test, y_pred))
+print("R² Score:", r2_score(y_test, y_pred))
 
-# Adjust views for each subplot
-ax1.view_init(elev=28, azim=120)
-ax2.view_init(elev=10, azim=70)
-ax3.view_init(elev=60, azim=160)
-
-# Add a title with the R² score
-fig.suptitle(f'3D Regression Plot (R² Score: {r2_score(diabetes_y_test, diabetes_y_pred):.2f})', fontsize=16)
-
-# Adjust layout and display plot
-fig.tight_layout()
+# Visualize the predicted vs actual values
+plt.figure(figsize=(10, 6))
+plt.scatter(y_test, y_pred, color='blue', alpha=0.6)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='red', linestyle='--')
+plt.xlabel('Actual Values')
+plt.ylabel('Predicted Values')
+plt.title('Actual vs Predicted Values (Multiple Linear Regression)')
+plt.grid(True)
 plt.show()
